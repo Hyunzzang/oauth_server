@@ -32,7 +32,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .headers().frameOptions().disable()
                 .and()
-                .authorizeRequests().antMatchers("/oauth/**", "/oauth2/callback", "/api/join").permitAll()
+                .authorizeRequests().antMatchers("/oauth/**", "/oauth2/callback", "/join").permitAll()
+                .antMatchers("/revoke_token").permitAll()
+                .anyRequest().authenticated()
                 .and()
                 .formLogin()
                 .and()
@@ -45,14 +47,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-        return NoOpPasswordEncoder.getInstance();
-    }
-
 //    @Bean
 //    public PasswordEncoder passwordEncoder() {
-//        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+////        return new BCryptPasswordEncoder();
+//        return NoOpPasswordEncoder.getInstance();
 //    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
 }

@@ -5,11 +5,21 @@ import org.springframework.boot.autoconfigure.security.oauth2.authserver.OAuth2A
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+
+import javax.sql.DataSource;
 //import org.springframework.security.oauth2.core.AuthorizationGrantType;
 //import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 //import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -27,21 +37,58 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     private final AuthenticationManager authenticationManager;
 
+    private final DataSource dataSource;
+    private final PasswordEncoder passwordEncoder;
+    private final RedisConnectionFactory redisConnectionFactory;
+
+    /**
+     * oauth 이용할 클라이언트정보 저장 방식 설정(인메모리, 디비 등)
+     * @param clients
+     * @throws Exception
+     */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients
-                .inMemory()
-                .withClient("testapp")
-                .secret("123456")
-                .authorizedGrantTypes("authorization_code", "password")
-                .redirectUris("http://localhost:8080/oauth2/callback")
-                .scopes("read", "write", "email", "profile")
-                .accessTokenValiditySeconds(600);
+//        clients
+//                .inMemory()
+//                .withClient("testapp")
+//                .secret("123456")
+//                .authorizedGrantTypes("authorization_code", "password")
+//                .redirectUris("http://localhost:8080/oauth2/callback")
+//                .scopes("read", "write", "email", "profile")
+//                .accessTokenValiditySeconds(600);
+
+        clients.jdbc(dataSource).passwordEncoder(passwordEncoder);
+    }
+
+    /**
+     * 토큰 정보 저장 방식 설정 (인메모리, 디비, 레디스 등)
+     * @param endpoints
+     */
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+//        endpoints.authenticationManager(authenticationManager).tokenStore(new JdbcTokenStore(dataSource));
+        endpoints.authenticationManager(authenticationManager).tokenStore(tokenStore());
+    }
+
+    @Bean
+    public TokenStore tokenStore() {
+        return new RedisTokenStore(redisConnectionFactory);
+    }
+
+    @Bean
+    @Primary
+    public DefaultTokenServices tokenServices() {
+        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore(tokenStore());
+        defaultTokenServices.setSupportRefreshToken(true);
+        return defaultTokenServices;
     }
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
-        endpoints.authenticationManager(authenticationManager);
+    public void configure(AuthorizationServerSecurityConfigurer security) {
+        security.tokenKeyAccess("permitAll()")
+                .checkTokenAccess("isAuthenticated()")
+                .allowFormAuthenticationForClients();
     }
 
 
