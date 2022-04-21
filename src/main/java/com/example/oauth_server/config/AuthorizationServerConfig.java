@@ -1,12 +1,7 @@
 package com.example.oauth_server.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.oauth2.authserver.OAuth2AuthorizationServerConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -39,7 +34,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     private final DataSource dataSource;
     private final PasswordEncoder passwordEncoder;
-    private final RedisConnectionFactory redisConnectionFactory;
+    private final TokenStore tokenStore;
+
 
     /**
      * oauth 이용할 클라이언트정보 저장 방식 설정(인메모리, 디비 등)
@@ -67,22 +63,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
 //        endpoints.authenticationManager(authenticationManager).tokenStore(new JdbcTokenStore(dataSource));
-        endpoints.authenticationManager(authenticationManager).tokenStore(tokenStore());
+        endpoints.authenticationManager(authenticationManager).tokenStore(tokenStore);
     }
 
-    @Bean
-    public TokenStore tokenStore() {
-        return new RedisTokenStore(redisConnectionFactory);
-    }
-
-    @Bean
-    @Primary
-    public DefaultTokenServices tokenServices() {
-        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore(tokenStore());
-        defaultTokenServices.setSupportRefreshToken(true);
-        return defaultTokenServices;
-    }
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) {
