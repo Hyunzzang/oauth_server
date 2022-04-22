@@ -42,11 +42,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         Optional<User> savedUser = userRepository.findByEmail(oAuth2UserInfo.getEmail());
-        User user;
+        User user = null;
         if (savedUser.isPresent()) {
             user = updateExistingUser(savedUser.get(), oAuth2UserInfo);
         } else {
-            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
+            // todo: user 정보가 없을 경우 에러 처리
+//            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
         }
 
 //        User user = savedUser.map(u -> updateExistingUser(u, oAuth2UserInfo))

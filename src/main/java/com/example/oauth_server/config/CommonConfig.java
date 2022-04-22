@@ -43,6 +43,7 @@ public class CommonConfig {
         final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setAccessTokenValiditySeconds(300);
         return defaultTokenServices;
     }
 

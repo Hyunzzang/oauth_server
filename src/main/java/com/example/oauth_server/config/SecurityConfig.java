@@ -1,5 +1,6 @@
 package com.example.oauth_server.config;
 
+import com.example.oauth_server.security.RestAuthenticationEntryPoint;
 import com.example.oauth_server.security.oauth2.CustomAuthorizationRequestRepository;
 import com.example.oauth_server.security.oauth2.CustomOAuth2UserService;
 import com.example.oauth_server.security.oauth2.OAuth2AuthenticationFailureHandler;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
@@ -46,11 +48,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         security
                 .csrf().disable()
                 .headers()
-                .frameOptions().disable()
+                    .frameOptions().disable()
                     .and()
+//                .sessionManagement()
+//                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                    .and()
+//                .exceptionHandling()
+//                    .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+//                    .and()
                 .authorizeRequests()
-                    .antMatchers("/oauth/**", "/oauth2/callback", "/join", "/h2-console/**").permitAll()
-                    .antMatchers("/revoke_token").permitAll()
+                    .antMatchers("/auth/**","/oauth/**", "/oauth2/**", "/oauth/authorize", "/h2-console/**").permitAll()
+                    .antMatchers("/join", "/revoke_token", "/oauth2/token/refresh").permitAll()
                     .anyRequest().authenticated()
                     .and()
                 .formLogin()
@@ -59,12 +67,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                 .oauth2Login()
                     .authorizationEndpoint()
-                        .baseUri("/oauth2/authorization")
-                    .authorizationRequestRepository(authorizationRequestRepository)
+                        .baseUri("/oauth2/authorize")
+                        .authorizationRequestRepository(authorizationRequestRepository)
                         .and()
-//                    .userInfoEndpoint()
-//                        .userService(customOAuth2UserService)
-//                        .and()
+                    .redirectionEndpoint()
+                        .baseUri("/oauth2/callback/*")
+                        .and()
+                    .userInfoEndpoint()
+                        .userService(customOAuth2UserService)
+                        .and()
                     .successHandler(oAuth2AuthenticationSuccessHandler)
                     .failureHandler(oAuth2AuthenticationFailureHandler);
     }

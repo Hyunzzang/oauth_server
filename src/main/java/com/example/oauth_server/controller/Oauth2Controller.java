@@ -1,5 +1,6 @@
 package com.example.oauth_server.controller;
 
+import com.example.oauth_server.dto.RefreshTokenRequest;
 import com.example.oauth_server.security.OAuthToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,10 +10,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -33,10 +31,10 @@ public class Oauth2Controller {
         return requestedOauthToken(params);
     }
 
-    @GetMapping(value = "/token/refresh")
-    public OAuthToken refreshToken(@RequestParam String refreshToken) throws JsonProcessingException {
+    @PostMapping(value = "/token/refresh")
+    public OAuthToken refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) throws JsonProcessingException {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("refresh_token", refreshToken);
+        params.add("refresh_token", refreshTokenRequest.refreshToken());
         params.add("grant_type", "refresh_token");
 
         return requestedOauthToken(params);

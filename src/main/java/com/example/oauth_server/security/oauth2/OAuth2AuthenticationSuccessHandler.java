@@ -40,12 +40,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         log.info(":: onAuthenticationSuccess() ::");
         String email = (String) ((OAuth2AuthenticationToken)authentication).getPrincipal().getAttributes().get("email");
+        String userName = (String) ((OAuth2AuthenticationToken)authentication).getPrincipal().getAttributes().get("name");
         String clientRegId = ((OAuth2AuthenticationToken)authentication).getAuthorizedClientRegistrationId();
         log.info("Authentication : {}", authentication);
         log.info("Authentication name : {}", email);
         log.info("Authentication clientRegId : {}", clientRegId);
 
-        OAuth2AccessToken oAuth2AccessToken = tokenServices.createAccessToken(new OAuth2Authentication(makeOAuth2Request(), authentication));
+        OAuth2AccessToken oAuth2AccessToken = tokenServices.createAccessToken(
+                new OAuth2Authentication(makeOAuth2Request(email, ((OAuth2AuthenticationToken)authentication).getAuthorities()), authentication));
         log.info("accessToken: {}", oAuth2AccessToken.getValue());
         log.info("refreshToken: {}", oAuth2AccessToken.getRefreshToken().getValue());
 
@@ -58,19 +60,23 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private OAuth2Request makeOAuth2Request() {
+    private OAuth2Request makeOAuth2Request(String email, Collection<GrantedAuthority> authorities) {
         Map<String, String> requestParameters = new HashMap<>();
+        requestParameters.put("username", email);
+        requestParameters.put("scopes", "read,write,email,profile");
+        requestParameters.put("grant_type", "authorization_code");
+
         Map<String, Serializable> extensionProperties = new HashMap<>();
 
         boolean approved = true;
-        Set<String> responseTypes = new HashSet<String>();
+        Set<String> responseTypes = new HashSet<>();
         responseTypes.add("code");
 
         List<String> scopes = Arrays.asList("read", "write", "email", "profile");
 
         // Authorities
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(Role.USER.getKey()));
+//        List<GrantedAuthority> authorities = new ArrayList<>();
+//        authorities.add(new SimpleGrantedAuthority(Role.USER.getKey()));
 
         return new OAuth2Request(requestParameters, "testapp", authorities, approved,
                 new HashSet<>(scopes), new HashSet<>(Arrays.asList("test_resourceId")), null, responseTypes, extensionProperties);
@@ -83,6 +89,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private String targetUrl(String email, String clientRegId) {
         Optional<User> savedUser = userRepository.findByEmail(email);
+        // 회원 정보가 있으면 홈 화면으로 없으면 가입 페이지로
         if (savedUser.isPresent()) {
             return "http://localhost:8080/api/test/home";
         } else {
