@@ -24,7 +24,6 @@ spring:
             clientSecret: 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
 #            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
 
-
 logging:
   level:
     root: debug

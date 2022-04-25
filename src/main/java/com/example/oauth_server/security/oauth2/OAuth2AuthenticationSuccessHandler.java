@@ -1,6 +1,6 @@
 package com.example.oauth_server.security.oauth2;
 
-import com.example.oauth_server.domain.Role;
+import com.example.oauth_server.config.OAuthConstant;
 import com.example.oauth_server.domain.User;
 import com.example.oauth_server.repository.UserRepository;
 import com.example.oauth_server.util.CookieUtils;
@@ -8,12 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -34,7 +32,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final DefaultTokenServices tokenServices;
     private final UserRepository userRepository;
-    private final CustomAuthorizationRequestRepository authorizationRequestRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -51,8 +48,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.info("accessToken: {}", oAuth2AccessToken.getValue());
         log.info("refreshToken: {}", oAuth2AccessToken.getRefreshToken().getValue());
 
-        CookieUtils.addCookie(response, "a_token", oAuth2AccessToken.getValue(), 10);
-        CookieUtils.addCookie(response, "r_token", oAuth2AccessToken.getRefreshToken().getValue(), 10);
+        CookieUtils.addCookie(response, "a_token", oAuth2AccessToken.getValue(), 60);
+        CookieUtils.addCookie(response, "r_token", oAuth2AccessToken.getRefreshToken().getValue(), 60);
 
         String targetUrl = targetUrl(email, clientRegId);
         log.info("targetUrl : {}", targetUrl);
@@ -84,7 +81,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
         super.clearAuthenticationAttributes(request);
-        authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+        CookieUtils.deleteCookie(request, response, OAuthConstant.OAUTH_COOKIE_NAME);
     }
 
     private String targetUrl(String email, String clientRegId) {

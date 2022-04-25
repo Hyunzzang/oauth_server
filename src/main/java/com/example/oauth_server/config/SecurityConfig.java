@@ -1,14 +1,11 @@
 package com.example.oauth_server.config;
 
-import com.example.oauth_server.security.RestAuthenticationEntryPoint;
-import com.example.oauth_server.security.oauth2.CustomAuthorizationRequestRepository;
-import com.example.oauth_server.security.oauth2.CustomOAuth2UserService;
-import com.example.oauth_server.security.oauth2.OAuth2AuthenticationFailureHandler;
-import com.example.oauth_server.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.example.oauth_server.security.oauth2.*;
 import com.example.oauth_server.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,8 +15,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
-import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @RequiredArgsConstructor
 @Configuration
@@ -29,7 +29,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
-    private final CustomAuthorizationRequestRepository authorizationRequestRepository;
+    private final AuthorizationRequestRepository authorizationRequestRepository;
+
+    private final TokenAuthenticationFilter tokenAuthenticationFilter;
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -43,41 +45,55 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder());
     }
 
+
     @Override
     protected void configure(HttpSecurity security) throws Exception {
         security
-                .csrf().disable()
-                .headers()
-                    .frameOptions().disable()
-                    .and()
-//                .sessionManagement()
-//                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                    .and()
-//                .exceptionHandling()
-//                    .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-//                    .and()
-                .authorizeRequests()
-                    .antMatchers("/auth/**","/oauth/**", "/oauth2/**", "/oauth/authorize", "/h2-console/**").permitAll()
-                    .antMatchers("/join", "/revoke_token", "/oauth2/token/refresh").permitAll()
-                    .anyRequest().authenticated()
-                    .and()
-                .formLogin()
-                    .and()
-                .httpBasic()
-                    .and()
-                .oauth2Login()
-                    .authorizationEndpoint()
-                        .baseUri("/oauth2/authorize")
-                        .authorizationRequestRepository(authorizationRequestRepository)
-                        .and()
-                    .redirectionEndpoint()
-                        .baseUri("/oauth2/callback/*")
-                        .and()
-                    .userInfoEndpoint()
-                        .userService(customOAuth2UserService)
-                        .and()
-                    .successHandler(oAuth2AuthenticationSuccessHandler)
-                    .failureHandler(oAuth2AuthenticationFailureHandler);
+                .csrf(config -> config.disable())
+                .headers(config -> {
+                    config.frameOptions().disable();
+                })
+                // Endpoint protection
+                .authorizeHttpRequests(config -> {
+                    config.antMatchers("/oauth/**", "/oauth2/**", "/h2-console/**").permitAll();
+                    config.antMatchers("/join", "/revoke_token").permitAll();
+                    config.anyRequest().authenticated();
+                })
+                .formLogin(config -> config.and())
+                .httpBasic(config -> config.and())
+                // Disable "JSESSIONID" cookies
+                .sessionManagement(config -> {
+                    config.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                })
+                // OAuth2 (social logins)
+                .oauth2Login(config -> {
+                    config.authorizationEndpoint(subconfig -> {
+                        subconfig.baseUri(OAuthConstant.AUTHORIZATION_BASE_URL);
+                        subconfig.authorizationRequestRepository(authorizationRequestRepository);
+                    });
+//                    config.redirectionEndpoint(subconfig -> {
+//                        subconfig.baseUri(OAuthConstant.CALLBACK_BASE_URL + "/*");
+//                    });
+//                    config.userInfoEndpoint(subconfig -> {
+//                        subconfig.userService(customOAuth2UserService);
+//                    });
+//                    config.authorizedClientService(customAuthorizedClientService);
+                    config.successHandler(oAuth2AuthenticationSuccessHandler);
+                    config.failureHandler(oAuth2AuthenticationFailureHandler);
+                })
+                // Filters
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Auth exceptions
+                .exceptionHandling(config -> {
+                    config.accessDeniedHandler(this::accessDenied);
+//                    config.authenticationEntryPoint(this::accessDenied);
+                });
+    }
+
+    private void accessDenied(HttpServletRequest request, HttpServletResponse response, Exception authException) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write("{ \"error\": \"Access Denied\" }");
     }
 
     @Override

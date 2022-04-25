@@ -1,6 +1,7 @@
 package com.example.oauth_server.config;
 
-import com.example.oauth_server.security.oauth2.CustomAuthorizationRequestRepository;
+import com.example.oauth_server.security.oauth2.CustomStatelessAuthorizationRequestRepository;
+import com.example.oauth_server.security.oauth2.TokenAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
@@ -48,7 +50,13 @@ public class CommonConfig {
     }
 
     @Bean
-    public CustomAuthorizationRequestRepository authorizationRequestRepository() {
-        return new CustomAuthorizationRequestRepository();
+    public TokenAuthenticationFilter tokenAuthenticationFilter() {
+        return new TokenAuthenticationFilter((RedisTokenStore)tokenStore());
+    }
+
+    @Bean
+    public AuthorizationRequestRepository authorizationRequestRepository() {
+//        return new CustomAuthorizationRequestRepository();
+        return new CustomStatelessAuthorizationRequestRepository();
     }
 }
