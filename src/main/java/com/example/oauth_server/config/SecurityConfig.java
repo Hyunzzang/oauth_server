@@ -15,7 +15,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.CookieRequestCache;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final AuthorizationRequestRepository authorizationRequestRepository;
 
     private final TokenAuthenticationFilter tokenAuthenticationFilter;
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -59,8 +62,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     config.antMatchers("/join", "/revoke_token").permitAll();
                     config.anyRequest().authenticated();
                 })
-                .formLogin(config -> config.and())
+                .formLogin(config -> {
+                    config.successHandler(authenticationSuccessHandler);
+                })
                 .httpBasic(config -> config.and())
+//                .requestCache(config -> {
+//                    config.requestCache(new CookieRequestCache());
+//                })
                 // Disable "JSESSIONID" cookies
                 .sessionManagement(config -> {
                     config.sessionCreationPolicy(SessionCreationPolicy.STATELESS);

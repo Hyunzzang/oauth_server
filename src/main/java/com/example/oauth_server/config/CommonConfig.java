@@ -1,7 +1,9 @@
 package com.example.oauth_server.config;
 
+import com.example.oauth_server.security.CustomAuthenticationSuccessHandler;
 import com.example.oauth_server.security.oauth2.CustomStatelessAuthorizationRequestRepository;
 import com.example.oauth_server.security.oauth2.TokenAuthenticationFilter;
+import com.example.oauth_server.service.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.security.oauth2.client.web.AuthorizationRequestReposi
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
@@ -20,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 public class CommonConfig {
 
     private final RedisConnectionFactory redisConnectionFactory;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public RestTemplate restTemplate() {
@@ -58,5 +62,10 @@ public class CommonConfig {
     public AuthorizationRequestRepository authorizationRequestRepository() {
 //        return new CustomAuthorizationRequestRepository();
         return new CustomStatelessAuthorizationRequestRepository();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return new CustomAuthenticationSuccessHandler(customUserDetailsService);
     }
 }

@@ -6,4 +6,6 @@ public class OAuthConstant {
 
     public static final String OAUTH_COOKIE_NAME = "OAUTH";
     public static final String SESSION_COOKIE_NAME = "SESSION";
+
+    public static final String RESOURCE_ID = "test_resourceId";
 }

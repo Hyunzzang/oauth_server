@@ -52,3 +52,13 @@ curl -X POST \
 ```
 
 ### 5. Authentication 내용 볼수 있는 api
+```
+curl -X GET \
+  http://localhost:8080/api/test/user \
+  -H 'authorization: Bearer {로그인 발급 받은 access token}' \
+```
+
+## 이슈
+### stateless session
+* [Redirecting to original URL for stateless session](https://stackoverflow.com/questions/45180747/redirecting-to-original-url-for-stateless-session)
+* [Support automatically destroying session on OAuth2](https://github.com/spring-projects/spring-security-oauth/issues/140)

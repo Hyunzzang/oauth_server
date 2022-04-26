@@ -76,7 +76,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 //        authorities.add(new SimpleGrantedAuthority(Role.USER.getKey()));
 
         return new OAuth2Request(requestParameters, "testapp", authorities, approved,
-                new HashSet<>(scopes), new HashSet<>(Arrays.asList("test_resourceId")), null, responseTypes, extensionProperties);
+                new HashSet<>(scopes), new HashSet<>(Arrays.asList(OAuthConstant.RESOURCE_ID)), null, responseTypes, extensionProperties);
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {

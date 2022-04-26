@@ -35,6 +35,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     private final DataSource dataSource;
     private final PasswordEncoder passwordEncoder;
     private final TokenStore tokenStore;
+    private final DefaultTokenServices tokenServices;
 
 
     /**
@@ -63,7 +64,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
 //        endpoints.authenticationManager(authenticationManager).tokenStore(new JdbcTokenStore(dataSource));
-        endpoints.authenticationManager(authenticationManager).tokenStore(tokenStore);
+        endpoints.authenticationManager(authenticationManager).tokenServices(tokenServices).tokenStore(tokenStore);
     }
 
 
