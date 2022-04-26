@@ -1,5 +1,6 @@
 package com.example.oauth_server.security;
 
+import com.example.oauth_server.domain.AuthProvider;
 import com.example.oauth_server.domain.Role;
 import com.example.oauth_server.domain.User;
 import lombok.Builder;
@@ -20,14 +21,21 @@ public class UserPrincipal implements UserDetails, OAuth2User {
     private Long id;
     private String email;
     private String password;
+    private String name;
+    private String imgUrl;
+    private AuthProvider provider;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
     @Builder
-    public UserPrincipal(Long id, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(Long id, String email, String password, String name, String imgUrl,
+                         AuthProvider provider, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.password = password;
+        this.name = name;
+        this.imgUrl = imgUrl;
+        this.provider = provider;
         this.authorities = authorities;
     }
 
@@ -39,6 +47,9 @@ public class UserPrincipal implements UserDetails, OAuth2User {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getName(),
+                user.getImageUrl(),
+                user.getProvider(),
                 authorities
         );
     }

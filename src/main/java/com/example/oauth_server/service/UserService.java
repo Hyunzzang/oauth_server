@@ -5,6 +5,7 @@ import com.example.oauth_server.domain.Role;
 import com.example.oauth_server.domain.User;
 import com.example.oauth_server.dto.JoinRequest;
 import com.example.oauth_server.repository.UserRepository;
+import com.example.oauth_server.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,20 +27,17 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public boolean sigup(JoinRequest joinRequest) {
-        registerUser(joinRequest.email(), joinRequest.password(), AuthProvider.local);
+        registerUser(joinRequest.email(), joinRequest.password(), null, null, AuthProvider.local);
 
         return true;
     }
 
-    public User sigupFromOauth2(Authentication authentication) {
-        Map<String, Object> principalAttrMap = ((OAuth2AuthenticationToken)authentication).getPrincipal().getAttributes();
-        String email = (String) principalAttrMap.get("email");
-        String authClientRegId = ((OAuth2AuthenticationToken)authentication).getAuthorizedClientRegistrationId();
-
-        return registerUser(email, null, AuthProvider.of(authClientRegId));
+    public User sigupFromOauth2(UserPrincipal userPrincipal) {
+        return registerUser(userPrincipal.getEmail(), null,
+                userPrincipal.getName(), userPrincipal.getImgUrl(), userPrincipal.getProvider());
     }
 
-    private User registerUser(String email, String password, AuthProvider authProvider) {
+    private User registerUser(String email, String password, String name, String imgUrl, AuthProvider authProvider) {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("이미 가입된 이메일 입니다.");
         }
@@ -47,6 +45,8 @@ public class UserService {
         return userRepository.save(User.builder()
                 .email(email)
                 .password(Objects.isNull(password) ? null : passwordEncoder.encode(password))
+                .name(name)
+                .imageUrl(imgUrl)
                 .role(Role.USER)
                 .provider(authProvider)
                 .build());

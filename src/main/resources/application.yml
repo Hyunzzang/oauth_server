@@ -24,6 +24,18 @@ spring:
             clientSecret: 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
 #            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
 
+custom:
+  oauth2:
+    kakao:
+      client-id: b8a3b3c35c7d32a96ed9f6531388f198
+      client-secret: leVz1yws2bq7v8QT31CsTv3MUaAKGnZ1
+      redirect-uri: "{baseUrl}/login/oauth2/callback/{registrationId}"
+      client-authentication-method: POST
+      authorization-grant-type: authorization_code
+      scope: profile_nickname, profile_image, account_email
+      client-name: Kakao
+
+
 logging:
   level:
     root: debug

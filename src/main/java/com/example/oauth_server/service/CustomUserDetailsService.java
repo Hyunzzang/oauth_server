@@ -28,8 +28,9 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new IllegalArgumentException("유저 정보가 없습니다."));
     }
 
-    private UserDetails createUserDetails(User users) {
-        return new UserPrincipal(users.getId(), users.getEmail(), users.getPassword(),
-                Collections.singletonList(users.getRole().getKey()).stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+    private UserDetails createUserDetails(User user) {
+        return new UserPrincipal(user.getId(), user.getEmail(), user.getPassword(),
+                user.getName(), user.getImageUrl(), user.getProvider(),
+                Collections.singletonList(user.getRole().getKey()).stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
     }
 }

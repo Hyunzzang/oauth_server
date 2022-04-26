@@ -1,6 +1,7 @@
 package com.example.oauth_server.config;
 
 import com.example.oauth_server.security.oauth2.*;
+import com.example.oauth_server.security.oauth2.service.CustomOAuth2UserService;
 import com.example.oauth_server.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.savedrequest.CookieRequestCache;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,10 +59,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // Endpoint protection
                 .authorizeHttpRequests(config -> {
                     config.antMatchers("/oauth/**", "/oauth2/**", "/h2-console/**").permitAll();
-                    config.antMatchers("/join", "/revoke_token").permitAll();
+                    config.antMatchers("/join", "/oauth2_join/**", "/revoke_token", "/custom_login").permitAll();
                     config.anyRequest().authenticated();
                 })
                 .formLogin(config -> {
+//                    config.loginPage("/custom_login");
                     config.successHandler(authenticationSuccessHandler);
                 })
                 .httpBasic(config -> config.and())
@@ -82,9 +83,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                    config.redirectionEndpoint(subconfig -> {
 //                        subconfig.baseUri(OAuthConstant.CALLBACK_BASE_URL + "/*");
 //                    });
-//                    config.userInfoEndpoint(subconfig -> {
-//                        subconfig.userService(customOAuth2UserService);
-//                    });
+                    // oauth2 로그인 성공 후 가져올 때의 설정들
+                    config.userInfoEndpoint(subconfig -> {
+                    // 소셜로그인 성공 시 후속 조치를 진행할 UserService 인터페이스 구현체 등록
+                        subconfig.userService(customOAuth2UserService);
+                    });
 //                    config.authorizedClientService(customAuthorizedClientService);
                     config.successHandler(oAuth2AuthenticationSuccessHandler);
                     config.failureHandler(oAuth2AuthenticationFailureHandler);
@@ -126,4 +129,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
+
 }

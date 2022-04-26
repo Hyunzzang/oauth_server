@@ -1,9 +1,11 @@
-package com.example.oauth_server.security.oauth2;
+package com.example.oauth_server.security.oauth2.service;
 
 import com.example.oauth_server.domain.AuthProvider;
 import com.example.oauth_server.domain.User;
 import com.example.oauth_server.repository.UserRepository;
 import com.example.oauth_server.security.UserPrincipal;
+import com.example.oauth_server.security.oauth2.user.OAuth2UserInfo;
+import com.example.oauth_server.security.oauth2.user.OAuth2UserInfoFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +49,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user = updateExistingUser(savedUser.get(), oAuth2UserInfo);
         } else {
             // todo: user 정보가 없을 경우 에러 처리
-//            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
+            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
         }
 
 //        User user = savedUser.map(u -> updateExistingUser(u, oAuth2UserInfo))
@@ -65,7 +67,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .providerId(oAuth2UserInfo.getId())
                 .build();
 
-        return userRepository.save(user);
+        // todo: 여기서 유저정보를 저장 않고 다른 곳에서 회원 가입 처리를 하자.
+        return user;
+        //return userRepository.save(user);
     }
 
     private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {

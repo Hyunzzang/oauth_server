@@ -4,7 +4,8 @@ import java.util.Objects;
 
 public enum AuthProvider {
     local,
-    google;
+    google,
+    kakao;
 
     public static AuthProvider of(String providerName) {
         AuthProvider authProvider = AuthProvider.valueOf(providerName);
