@@ -3,6 +3,7 @@ package com.example.oauth_server.security.oauth2;
 import com.example.oauth_server.config.OAuthConstant;
 import com.example.oauth_server.domain.User;
 import com.example.oauth_server.repository.UserRepository;
+import com.example.oauth_server.security.UserPrincipal;
 import com.example.oauth_server.util.CookieUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +37,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         log.info(":: onAuthenticationSuccess() ::");
-        String email = (String) ((OAuth2AuthenticationToken)authentication).getPrincipal().getAttributes().get("email");
-        String userName = (String) ((OAuth2AuthenticationToken)authentication).getPrincipal().getAttributes().get("name");
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        String email =  userPrincipal.getEmail();
+        String userName = userPrincipal.getName();
         String clientRegId = ((OAuth2AuthenticationToken)authentication).getAuthorizedClientRegistrationId();
         log.info("Authentication : {}", authentication);
         log.info("Authentication name : {}", email);

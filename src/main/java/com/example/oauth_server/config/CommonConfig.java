@@ -104,15 +104,11 @@ public class CommonConfig {
         registrations.add(CustomOAuth2Provider.KAKAO.getBuilder("kakao")
                 .clientId(kakaoClientId)
                 .clientSecret(kakaoClientSecret)
-                .redirectUri("http://localhost:8080/login/oauth2/code/kakao")
-                .scope("profile_nickname", "profile_image", "account_email")
-                .clientName(kakaoClientName)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.POST)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationUri("https://kauth.kakao.com/oauth/authorize")
-                .tokenUri("https://kauth.kakao.com/oauth/token")
-                .userInfoUri("https://kapi.kakao.com/v2/user/me")
-                .userNameAttributeName("id")
+//                .redirectUri("http://localhost:8080/login/oauth2/code/kakao")
+//                .scope("profile_nickname", "profile_image", "account_email")
+//                .clientName(kakaoClientName)
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.POST)
+//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .build());
 
         return new InMemoryClientRegistrationRepository(registrations);

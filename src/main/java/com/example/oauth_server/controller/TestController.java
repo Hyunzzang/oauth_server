@@ -4,6 +4,10 @@ import com.example.oauth_server.util.CookieUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,5 +38,27 @@ public class TestController {
     public ResponseEntity<?> user() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(authentication);
+    }
+
+    @GetMapping("/token/google")
+    public ResponseEntity<?> tokenByGoogle(@RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient user) {
+        OAuth2AccessToken accessToken = user.getAccessToken();
+        OAuth2RefreshToken refreshToken = user.getRefreshToken();
+
+        String msg = String.format("AccessToken: %s, RefreshToken: %s",
+                accessToken.getTokenValue(),
+                refreshToken != null ? refreshToken.getTokenValue() : "Null.");
+        return ResponseEntity.ok(msg);
+    }
+
+    @GetMapping("/token/kakao")
+    public ResponseEntity<?> tokenByKakao(@RegisteredOAuth2AuthorizedClient("kakao") OAuth2AuthorizedClient user) {
+        OAuth2AccessToken accessToken = user.getAccessToken();
+        OAuth2RefreshToken refreshToken = user.getRefreshToken();
+
+        String msg = String.format("AccessToken: %s, RefreshToken: %s",
+                accessToken.getTokenValue(),
+                refreshToken != null ? refreshToken.getTokenValue() : "Null.");
+        return ResponseEntity.ok(msg);
     }
 }

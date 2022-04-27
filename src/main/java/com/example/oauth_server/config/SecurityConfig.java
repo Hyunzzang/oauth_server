@@ -91,6 +91,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                    config.authorizedClientService(customAuthorizedClientService);
                     config.successHandler(oAuth2AuthenticationSuccessHandler);
                     config.failureHandler(oAuth2AuthenticationFailureHandler);
+//                    config.defaultSuccessUrl("/loginSuccess");
+//                    config.failureUrl("/loginFailure");
                 })
                 // Filters
                 .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
